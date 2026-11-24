@@ -1,0 +1,467 @@
+/* 真实资金成本计算器 —— 全站样式
+   原则：简洁、可信工具风；零外部依赖；高对比图表；移动端不横向爆炸。 */
+
+:root {
+  --color-bg: #f7f8fa;
+  --color-surface: #ffffff;
+  --color-text: #1f2933;
+  --color-text-secondary: #52606d;
+  --color-border: #d9dee4;
+  --color-accent: #0b5cad;
+  --color-accent-dark: #084a8c;
+  --color-error-bg: #fdecea;
+  --color-error-border: #e0a39a;
+  --color-error-text: #8c2f22;
+  --color-warn-bg: #fde8e8;
+  --color-warn: #b42318;
+  --color-bar-principal: #0b5cad;
+  --color-bar-interest: #d64541;
+  --color-highlight-bg: #eef4fb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei",
+    "Noto Sans CJK SC", "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* ---------- 头部与导航 ---------- */
+
+.site-header {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.header-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 24px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.site-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.nav-link {
+  display: inline-block;
+  padding: 8px 14px;
+  min-height: 44px;
+  line-height: 28px;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-radius: 6px;
+}
+
+.nav-link:hover,
+.nav-link:focus-visible {
+  background: var(--color-highlight-bg);
+  color: var(--color-accent);
+}
+
+.nav-link.nav-active {
+  background: var(--color-accent);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* ---------- 主体 ---------- */
+
+.site-main {
+  padding-top: 24px;
+  padding-bottom: 48px;
+}
+
+h1 {
+  font-size: 24px;
+  margin: 0 0 8px;
+}
+
+h2 {
+  font-size: 20px;
+  margin: 32px 0 12px;
+}
+
+h3 {
+  font-size: 17px;
+  margin: 24px 0 8px;
+}
+
+.lead {
+  color: var(--color-text-secondary);
+  max-width: 70ch;
+}
+
+/* ---------- 表单 ---------- */
+
+.calc-form {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+  max-width: 560px;
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.field label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.required {
+  color: var(--color-warn);
+}
+
+.field input {
+  width: 100%;
+  padding: 10px 12px;
+  min-height: 44px;
+  font-size: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--color-text);
+}
+
+.field input:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+  border-color: var(--color-accent);
+}
+
+.btn-primary {
+  display: inline-block;
+  padding: 12px 28px;
+  min-height: 44px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--color-accent);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  background: var(--color-accent-dark);
+}
+
+.btn-danger {
+  padding: 8px 14px;
+  min-height: 44px;
+  font-size: 14px;
+  color: var(--color-warn);
+  background: #ffffff;
+  border: 1px solid var(--color-warn);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-danger:hover,
+.btn-danger:focus-visible {
+  background: var(--color-warn);
+  color: #ffffff;
+}
+
+/* ---------- 错误提示 ---------- */
+
+.alert-error {
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-top: 20px;
+  color: var(--color-error-text);
+}
+
+.alert-error .alert-title {
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.alert-error ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+/* ---------- 结果区 ---------- */
+
+.result-section {
+  margin-top: 32px;
+}
+
+.result-table,
+.compare-table {
+  border-collapse: collapse;
+  width: 100%;
+  background: var(--color-surface);
+  font-size: 15px;
+}
+
+.result-table th,
+.result-table td,
+.compare-table th,
+.compare-table td {
+  border: 1px solid var(--color-border);
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.result-table {
+  max-width: 560px;
+}
+
+.result-table th {
+  width: 45%;
+  background: #f0f2f5;
+}
+
+.row-highlight td,
+.row-highlight th {
+  background: var(--color-highlight-bg);
+  font-weight: 700;
+}
+
+.compare-table thead th {
+  background: #f0f2f5;
+}
+
+.compare-table td {
+  word-break: break-word;
+  padding: 8px 8px;
+}
+
+.compare-table form {
+  margin: 0;
+}
+
+/* 表格在窄屏上允许容器内横向滚动，页面本身不横向爆炸 */
+.table-wrap {
+  overflow-x: auto;
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+.row-worst td {
+  background: var(--color-warn-bg);
+}
+
+.badge-worst {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+  background: var(--color-warn);
+  border-radius: 4px;
+}
+
+.row-omitted td {
+  text-align: center;
+  color: var(--color-text-secondary);
+  background: #f0f2f5;
+}
+
+/* ---------- 说明框与图表 ---------- */
+
+.explainer,
+.cashflow-box {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-top: 20px;
+  max-width: 70ch;
+}
+
+.explainer h3,
+.cashflow-box h3 {
+  margin-top: 0;
+}
+
+.bar-chart {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-top: 20px;
+  max-width: 560px;
+}
+
+.bar-chart h3 {
+  margin-top: 0;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.bar-label {
+  flex: 0 0 48px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.bar-track {
+  flex: 1 1 auto;
+  height: 24px;
+  background: #eceff3;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar {
+  height: 100%;
+  border-radius: 4px 0 0 4px;
+}
+
+.bar-principal {
+  background: var(--color-bar-principal);
+}
+
+.bar-interest {
+  background: var(--color-bar-interest);
+}
+
+.bar-value {
+  flex: 0 0 auto;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.svg-chart {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-top: 20px;
+}
+
+.svg-chart svg {
+  display: block;
+  max-width: 720px;
+  height: auto;
+}
+
+.axis {
+  stroke: #9aa5b1;
+  stroke-width: 1;
+}
+
+.axis-text {
+  font-size: 12px;
+  fill: var(--color-text-secondary);
+}
+
+.axis-text-right {
+  text-anchor: end;
+}
+
+.balance-line {
+  fill: none;
+  stroke: var(--color-bar-principal);
+  stroke-width: 2.5;
+}
+
+.note {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.empty-state {
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: 8px;
+  padding: 32px 20px;
+  margin-top: 20px;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+.empty-state a {
+  color: var(--color-accent);
+}
+
+/* ---------- 科普页 ---------- */
+
+.edu-section {
+  max-width: 70ch;
+  margin-bottom: 8px;
+}
+
+/* ---------- 页脚 ---------- */
+
+.site-footer {
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  padding: 16px 0;
+}
+
+.disclaimer {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+/* ---------- 移动端适配 ---------- */
+
+@media (max-width: 600px) {
+  body {
+    font-size: 15px;
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  .header-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nav-link {
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+
+  .calc-form {
+    padding: 16px;
+  }
+
+  .compare-table {
+    font-size: 13px;
+  }
+}

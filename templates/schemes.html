@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}方案对比 · 真实资金成本计算器{% endblock %}
+{% block content %}
+<h1>方案对比</h1>
+<p class="lead">这里列出你在分期计算器中保存的所有方案（按创建时间倒序）。
+并排比较名义年化 IRR，一眼看出哪个方案最贵。</p>
+
+{% if schemes %}
+<div class="table-wrap">
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th scope="col">方案名</th>
+        <th scope="col">本金（元）</th>
+        <th scope="col">期数</th>
+        <th scope="col">每期费率</th>
+        <th scope="col">砍头息（元）</th>
+        <th scope="col">总利息（元）</th>
+        <th scope="col">名义总费率</th>
+        <th scope="col">月 IRR</th>
+        <th scope="col">名义年化</th>
+        <th scope="col">有效年利率</th>
+        <th scope="col">创建时间</th>
+        <th scope="col">操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in schemes %}
+      <tr{% if max_nominal is not none and s.nominal_annual == max_nominal %} class="row-worst"{% endif %}>
+        <td>
+          {{ s.name }}
+          {% if max_nominal is not none and s.nominal_annual == max_nominal %}
+          <span class="badge-worst">成本最高</span>
+          {% endif %}
+        </td>
+        <td>{{ s.principal | money }}</td>
+        <td>{{ s.periods }}</td>
+        <td>{{ s.fee_rate | percent(2) }}</td>
+        <td>{{ s.upfront_fee | money }}</td>
+        <td>{{ s.total_interest | money }}</td>
+        <td>{{ s.nominal_total_rate | percent(2) }}</td>
+        <td>{{ s.monthly_irr | percent(4) }}</td>
+        <td>{{ s.nominal_annual | percent(2) }}</td>
+        <td>{{ s.effective_annual | percent(2) }}</td>
+        <td>{{ s.created_at }}</td>
+        <td>
+          <form method="post" action="{{ url_for('delete_scheme', scheme_id=s.id) }}"
+                onsubmit="return confirm('确定删除方案「{{ s.name }}」吗？');">
+            <button type="submit" class="btn-danger">删除</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <p>还没有保存任何方案。</p>
+  <p><a href="{{ url_for('index') }}">去分期计算器算一个方案</a>，计算成功后会自动保存到这里。</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}真实资金成本计算器{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="site-header">
+  <div class="container header-inner">
+    <span class="site-title">真实资金成本计算器</span>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="{{ url_for('index') }}"
+         class="nav-link{% if active_page == 'index' %} nav-active{% endif %}">分期计算器</a>
+      <a href="{{ url_for('schemes') }}"
+         class="nav-link{% if active_page == 'schemes' %} nav-active{% endif %}">方案对比</a>
+      <a href="{{ url_for('min_payment') }}"
+         class="nav-link{% if active_page == 'min_payment' %} nav-active{% endif %}">最低还款模拟</a>
+      <a href="{{ url_for('education') }}"
+         class="nav-link{% if active_page == 'education' %} nav-active{% endif %}">科普</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container site-main">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="disclaimer">
+      免责声明：本站所有结果均为「年化 IRR 估算」，用于帮助理解分期付款与消费信贷的
+      真实资金成本，<strong>不构成监管口径的 APR</strong>，也<strong>不构成任何贷款、
+      法律或投资建议</strong>。实际借款成本以合同与监管披露为准。
+    </p>
+  </div>
+</footer>
+</body>
+</html>

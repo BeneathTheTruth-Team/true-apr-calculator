@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}最低还款模拟 · 真实资金成本计算器{% endblock %}
+{% block content %}
+<h1>最低还款模拟</h1>
+<p class="lead">信用卡或循环信贷只还「最低还款」时，要多久才能还清？一共要付多少利息？
+输入参数模拟看看。口径：每月先按还款前余额计息，再按计息后余额的比例还款。</p>
+
+{% if errors %}
+<div class="alert-error" role="alert">
+  <p class="alert-title">提交未通过校验，请修正以下问题：</p>
+  <ul>
+    {% for error in errors %}
+    <li>{{ error }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<form method="post" action="{{ url_for('min_payment') }}" class="calc-form" novalidate>
+  <div class="field">
+    <label for="balance">欠款金额（元）<span class="required">*</span></label>
+    <input type="number" id="balance" name="balance" min="0.01" step="0.01"
+           value="{{ form.balance }}" required>
+  </div>
+  <div class="field">
+    <label for="monthly_rate">月利率（%）<span class="required">*</span></label>
+    <input type="number" id="monthly_rate" name="monthly_rate" min="0.001" max="20"
+           step="0.001" value="{{ form.monthly_rate }}"
+           placeholder="例如 1.5 表示月利率 1.5%" required>
+  </div>
+  <div class="field">
+    <label for="payment_ratio">每月还款比例（%）<span class="required">*</span></label>
+    <input type="number" id="payment_ratio" name="payment_ratio" min="0.001" max="100"
+           step="0.1" value="{{ form.payment_ratio }}"
+           placeholder="例如 10 表示每月还计息后余额的 10%" required>
+  </div>
+  <button type="submit" class="btn-primary">开始模拟</button>
+</form>
+
+{% if result %}
+<section class="result-section" aria-label="模拟结果">
+  <h2>模拟结果</h2>
+
+  <table class="result-table">
+    <tbody>
+      <tr><th scope="row">还清所需月数</th><td>{{ result.months }} 个月
+        {% if result.months >= 12 %}（约 {{ (result.months / 12) | round(1) }} 年）{% endif %}</td></tr>
+      <tr class="row-highlight"><th scope="row">总利息</th>
+          <td>{{ result.total_interest | money }} 元</td></tr>
+    </tbody>
+  </table>
+
+  {% if chart_polyline %}
+  <div class="svg-chart" role="img"
+       aria-label="逐月余额变化折线图：余额从 {{ chart_max_balance | money }} 元逐步下降到接近 0">
+    <h3>逐月余额变化</h3>
+    <svg viewBox="0 0 720 260" width="100%" preserveAspectRatio="xMidYMid meet"
+         xmlns="http://www.w3.org/2000/svg">
+      <line x1="0" y1="250" x2="720" y2="250" class="axis"/>
+      <line x1="0" y1="5" x2="0" y2="250" class="axis"/>
+      <text x="6" y="18" class="axis-text">{{ chart_max_balance | money }} 元</text>
+      <text x="6" y="246" class="axis-text">0</text>
+      <text x="712" y="246" class="axis-text axis-text-right">{{ result.months }} 月</text>
+      <g transform="translate(0,5)">
+        <polyline points="{{ chart_polyline }}" class="balance-line"/>
+      </g>
+    </svg>
+  </div>
+  {% endif %}
+
+  <h3>逐月明细{% if omitted %}（前 {{ head_rows | length }} 个月与最后 {{ tail_rows | length }} 个月，中间省略 {{ omitted }} 个月）{% endif %}</h3>
+  <div class="table-wrap">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th scope="col">月份</th>
+          <th scope="col">期初余额（元）</th>
+          <th scope="col">当月利息（元）</th>
+          <th scope="col">当月还款（元）</th>
+          <th scope="col">期末余额（元）</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in head_rows %}
+        <tr>
+          <td>{{ row.month }}</td>
+          <td>{{ row.beginning_balance | money }}</td>
+          <td>{{ row.interest | money }}</td>
+          <td>{{ row.payment | money }}</td>
+          <td>{{ row.ending_balance | money }}</td>
+        </tr>
+        {% endfor %}
+        {% if omitted %}
+        <tr class="row-omitted"><td colspan="5">…… 中间省略 {{ omitted }} 个月 ……</td></tr>
+        {% endif %}
+        {% for row in tail_rows %}
+        <tr>
+          <td>{{ row.month }}</td>
+          <td>{{ row.beginning_balance | money }}</td>
+          <td>{{ row.interest | money }}</td>
+          <td>{{ row.payment | money }}</td>
+          <td>{{ row.ending_balance | money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <p class="note">以上结果为「年化 IRR 估算」框架下的情景模拟，不构成监管 APR 口径，
+  不构成贷款、法律或投资建议。实际账单还可能有滞纳金、违约金等额外费用。</p>
+</section>
+{% endif %}
+{% endblock %}

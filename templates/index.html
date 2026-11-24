@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}分期计算器 · 真实资金成本计算器{% endblock %}
+{% block content %}
+<h1>分期计算器</h1>
+<p class="lead">输入分期方案的参数，用现金流 IRR 揭示它的真实年化成本。
+计算通过的方案会自动保存，可在「方案对比」页并排比较。</p>
+
+{% if errors %}
+<div class="alert-error" role="alert">
+  <p class="alert-title">提交未通过校验，请修正以下问题：</p>
+  <ul>
+    {% for error in errors %}
+    <li>{{ error }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<form method="post" action="{{ url_for('index') }}" class="calc-form" novalidate>
+  <div class="field">
+    <label for="name">方案名（可选）</label>
+    <input type="text" id="name" name="name" maxlength="50"
+           value="{{ form.name }}" placeholder="例如：某平台 12 期免息券后方案">
+  </div>
+  <div class="field">
+    <label for="principal">借款金额（元）<span class="required">*</span></label>
+    <input type="number" id="principal" name="principal" min="0.01" step="0.01"
+           value="{{ form.principal }}" required>
+  </div>
+  <div class="field">
+    <label for="periods">期数（月）<span class="required">*</span></label>
+    <input type="number" id="periods" name="periods" min="1" max="360" step="1"
+           value="{{ form.periods }}" required>
+  </div>
+  <div class="field">
+    <label for="fee_rate">每期手续费率（%）<span class="required">*</span></label>
+    <input type="number" id="fee_rate" name="fee_rate" min="0" max="20" step="0.001"
+           value="{{ form.fee_rate }}" placeholder="例如 0.6 表示每期 0.6%" required>
+  </div>
+  <div class="field">
+    <label for="upfront_fee">放款手续费 / 砍头息（元，可选）</label>
+    <input type="number" id="upfront_fee" name="upfront_fee" min="0" step="0.01"
+           value="{{ form.upfront_fee }}" placeholder="放款时一次性扣除，留空表示无">
+  </div>
+  <button type="submit" class="btn-primary">计算真实成本</button>
+</form>
+
+{% if result %}
+<section class="result-section" aria-label="计算结果">
+  <h2>计算结果{% if params.name %}：{{ params.name }}{% endif %}</h2>
+
+  <table class="result-table">
+    <tbody>
+      <tr><th scope="row">期初实际到手</th><td>{{ result.amount_received | money }} 元</td></tr>
+      <tr><th scope="row">每期还款额</th><td>{{ result.monthly_payment | money }} 元</td></tr>
+      <tr><th scope="row">还款总额</th><td>{{ result.total_payment | money }} 元</td></tr>
+      <tr><th scope="row">总利息（手续费合计）</th><td>{{ result.total_interest | money }} 元</td></tr>
+      <tr><th scope="row">名义总费率</th><td>{{ result.nominal_total_rate | percent(2) }}</td></tr>
+      <tr class="row-highlight"><th scope="row">月 IRR</th>
+          <td>{{ result.monthly_irr | percent(4) }}</td></tr>
+      <tr class="row-highlight"><th scope="row">名义年化 IRR</th>
+          <td>{{ result.nominal_annual | percent(2) }}</td></tr>
+      <tr class="row-highlight"><th scope="row">有效年利率（EAR）</th>
+          <td>{{ result.effective_annual | percent(2) }}</td></tr>
+    </tbody>
+  </table>
+
+  <div class="explainer">
+    <h3>为什么名义费率和 IRR 不一样？</h3>
+    <p>宣传口径常说「总费率只有 {{ result.nominal_total_rate | percent(2) }}」，
+    但那是把手续费除以<strong>全部本金</strong>。实际上你每期都在还本金，
+    手里真正占用的钱逐月减少，而手续费始终按初始本金收取。
+    现金流 IRR 把「每月实际占用多少钱」算了进去，因此名义年化 IRR
+    （{{ result.nominal_annual | percent(2) }}）约为名义总费率的近两倍，
+    这才是更接近真实的资金成本。有效年利率（EAR，
+    {{ result.effective_annual | percent(2) }}）再考虑月复利，比名义年化略高。</p>
+    {% if params.upfront_fee and params.upfront_fee > 0 %}
+    <p>本方案还有 {{ params.upfront_fee | money }} 元砍头息：你借
+    {{ params.principal | money }} 元，期初实际只到手
+    {{ result.amount_received | money }} 元，却要按全额本金还本付息，
+    这进一步推高了真实成本。</p>
+    {% endif %}
+  </div>
+
+  <div class="bar-chart" role="img"
+       aria-label="本金与总利息对比：本金 {{ result.amount_received | money }} 元，总利息 {{ result.total_interest | money }} 元">
+    <h3>本金 vs 总利息</h3>
+    <div class="bar-row">
+      <span class="bar-label">本金</span>
+      <div class="bar-track">
+        <div class="bar bar-principal" style="width: 100%"></div>
+      </div>
+      <span class="bar-value">{{ result.amount_received | money }}</span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-label">总利息</span>
+      <div class="bar-track">
+        <div class="bar bar-interest"
+             style="width: {{ [result.total_interest / result.amount_received * 100, 100] | min | round(2) }}%"></div>
+      </div>
+      <span class="bar-value">{{ result.total_interest | money }}</span>
+    </div>
+  </div>
+
+  <div class="cashflow-box">
+    <h3>现金流说明</h3>
+    <p>按期初放款、期末还款的假设，本方案现金流如下（正数为你拿到钱，负数为你付钱）：</p>
+    <ul>
+      <li>第 0 期（期初）：+{{ result.cashflows[0] | money }} 元（放款到手）</li>
+      <li>第 1 ～ {{ params.periods }} 期（每期期末）：{{ result.cashflows[1] | money }} 元
+        （其中本金 {{ (params.principal / params.periods) | money }} 元，
+        手续费 {{ (params.principal * params.fee_rate) | money }} 元）</li>
+    </ul>
+    <p class="note">以上结果为「年化 IRR 估算」，不构成监管 APR 口径，不构成贷款、法律或投资建议。</p>
+  </div>
+</section>
+{% endif %}
+{% endblock %}
